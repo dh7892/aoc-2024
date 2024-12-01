@@ -1,22 +1,5 @@
 advent_of_code::solution!(1);
 
-pub fn part_one(input: &str) -> Option<u32> {
-    // Create two vectors to store the integers from each column
-    let (mut column1, mut column2) = input_to_columns(input);
-
-    column1.sort();
-    column2.sort();
-
-    let sum_of_differences: i32 = column1
-        .iter()
-        .zip(column2.iter())
-        .map(|(&a, &b)| (a - b).abs())
-        .sum();
-
-    // For now, we'll just return None. You can implement the rest of the logic later.
-    Some(sum_of_differences as u32)
-}
-
 fn appearances(num: i32, list: &Vec<i32>) -> usize {
     // Return the number of times num appears in the list
     list.iter().filter(|&a| a == &num).count()
@@ -39,6 +22,23 @@ fn input_to_columns(input: &str) -> (Vec<i32>, Vec<i32>) {
     }
 
     (column1, column2)
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
+    // Create two vectors to store the integers from each column
+    let (mut column1, mut column2) = input_to_columns(input);
+
+    column1.sort();
+    column2.sort();
+
+    let sum_of_differences: i32 = column1
+        .iter()
+        .zip(column2.iter())
+        .map(|(&a, &b)| (a - b).abs())
+        .sum();
+
+    // For now, we'll just return None. You can implement the rest of the logic later.
+    Some(sum_of_differences as u32)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
