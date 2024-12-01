@@ -1,6 +1,6 @@
 advent_of_code::solution!(1);
 
-fn appearances(num: i32, list: &Vec<i32>) -> usize {
+fn appearances(num: i32, list: &[i32]) -> usize {
     // Return the number of times num appears in the list
     list.iter().filter(|&a| a == &num).count()
 }
