@@ -32,7 +32,7 @@ pub fn part_one(input: &str) -> Option<u32> {
                 .map(|n| n.parse::<i32>().unwrap())
                 .collect()
         })
-        .filter(|line: &Vec<i32>| is_safe(line))
+        .filter(is_safe)
         .count() as u32;
     Some(result)
 }
