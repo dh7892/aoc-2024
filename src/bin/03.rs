@@ -1,99 +1,86 @@
 advent_of_code::solution!(3);
 
+use nom::branch::alt;
 use nom::bytes::complete::tag;
+use nom::character::complete::anychar;
 use nom::character::complete::digit1;
+use nom::combinator::value;
 use nom::combinator::verify;
+use nom::multi::many1;
+use nom::multi::many_till;
 use nom::sequence::{delimited, separated_pair};
 use nom::IResult;
+use nom::Parser;
 
-fn do_parser(input: &str) -> IResult<&str, &str> {
-    tag("do()")(input)
-}
-
-fn dont_parser(input: &str) -> IResult<&str, &str> {
-    tag("don't()")(input)
+#[derive(Debug, PartialEq, Clone)]
+enum Operator {
+    Mul(u32, u32),
+    Do,
+    Dont,
 }
 
 fn number_1_to_3_digits(input: &str) -> IResult<&str, &str> {
     verify(digit1, |s: &str| s.len() >= 1 && s.len() <= 3)(input)
 }
 
-fn mul_parser(input: &str) -> IResult<&str, (u32, u32)> {
-    delimited(
+fn mul_parser(input: &str) -> IResult<&str, Operator> {
+    let (input, (a, b)) = delimited(
         tag("mul("),
         separated_pair(number_1_to_3_digits, tag(","), number_1_to_3_digits),
         tag(")"),
-    )(input)
-    .map(|(remaining, (d1, d2))| (remaining, (d1.parse().unwrap(), d2.parse().unwrap())))
+    )(input)?;
+    Ok((input, Operator::Mul(a.parse().unwrap(), b.parse().unwrap())))
 }
 
-fn find_all_muls(input: &str) -> Vec<(u32, u32)> {
-    let mut result = Vec::new();
-    let mut current_input = input;
-
-    while !current_input.is_empty() {
-        match mul_parser(current_input) {
-            Ok((remaining, pair)) => {
-                result.push(pair);
-                current_input = remaining;
-            }
-            Err(_) => {
-                // Skip one character and try again
-                current_input = &current_input[1..];
-            }
-        }
-    }
-
-    result
+fn operator_parser(input: &str) -> IResult<&str, Operator> {
+    // Parse any operator
+    alt((
+        value(Operator::Do, tag("do()")),
+        value(Operator::Dont, tag("don't()")),
+        mul_parser,
+    ))(input)
 }
 
-fn find_all_enabled_muls(input: &str) -> Vec<(u32, u32)> {
-    let mut result = Vec::new();
-    let mut current_input = input;
-    let mut enabled = true;
-
-    while !current_input.is_empty() {
-        match do_parser(current_input) {
-            Ok((remaining, _)) => {
-                enabled = true;
-                current_input = remaining;
-            }
-            Err(_) => {}
-        }
-        match dont_parser(current_input) {
-            Ok((remaining, _)) => {
-                enabled = false;
-                current_input = remaining;
-            }
-            Err(_) => {}
-        }
-        match mul_parser(current_input) {
-            Ok((remaining, pair)) => {
-                if enabled {
-                    result.push(pair);
-                }
-                current_input = remaining;
-            }
-            Err(_) => {
-                // Skip one character and try again
-                current_input = &current_input[1..];
-            }
-        }
-    }
-
-    result
+fn find_all_operators(input: &str) -> Vec<Operator> {
+    // Parse a long string that may contain a lot of junk and
+    // pull out a vec of all operators in order
+    many1(many_till(anychar, operator_parser).map(|(_discard, operator)| operator))(input)
+        .unwrap()
+        .1
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let operands = find_all_muls(input);
-    let result = operands.iter().fold(0, |acc, (a, b)| acc + a * b);
+    let operands = find_all_operators(input);
+    let result = operands
+        .iter()
+        .filter_map(|op| match op {
+            Operator::Mul(a, b) => Some(a * b),
+            _ => None,
+        })
+        .sum();
     Some(result)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let operands = find_all_enabled_muls(input);
-    let result = operands.iter().fold(0, |acc, (a, b)| acc + a * b);
-    Some(result)
+    let operators = find_all_operators(input);
+    let mut sum = 0;
+    let mut enabled = true;
+    for op in operators {
+        match op {
+            Operator::Mul(a, b) => {
+                if enabled {
+                    sum += a * b;
+                }
+            }
+            Operator::Do => {
+                enabled = true;
+            }
+            Operator::Dont => {
+                enabled = false;
+            }
+        }
+    }
+    Some(sum)
 }
 
 #[cfg(test)]
@@ -117,7 +104,7 @@ mod tests {
     #[test]
     fn test_mult_operation_works() {
         let result = mul_parser("mul(123,456)");
-        assert_eq!(result, Ok(("", (123, 456))));
+        assert_eq!(result, Ok(("", Operator::Mul(123, 456))));
     }
     #[test]
     fn test_mult_operation_does_not_find_spaces() {
