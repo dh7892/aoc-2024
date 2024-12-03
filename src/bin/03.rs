@@ -1,11 +1,8 @@
 advent_of_code::solution!(3);
 
-use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::character::complete::{anychar, digit1};
-use nom::combinator::map;
+use nom::character::complete::digit1;
 use nom::combinator::verify;
-use nom::multi::many0;
 use nom::sequence::{delimited, separated_pair};
 use nom::IResult;
 
