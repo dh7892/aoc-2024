@@ -1,18 +1,17 @@
 advent_of_code::solution!(4);
 
-fn str_to_2d_vec(input: &str) -> Vec<Vec<&str>> {
+use itertools::Itertools;
+
+fn str_to_2d_vec(input: &str) -> Vec<Vec<char>> {
     // Split our multiline string into a 2D vector of characters
-    input
-        .lines()
-        .map(|line| line.split("").filter(|c| !c.is_empty()).collect())
-        .collect()
+    input.lines().map(|line| line.chars().collect()).collect()
 }
 
-fn iter_in_direction<'a>(
-    characters: &Vec<Vec<&'a str>>,
+fn iter_in_direction(
+    characters: &Vec<Vec<char>>,
     start: (usize, usize),
     direction: (i32, i32),
-) -> Vec<&'a str> {
+) -> String {
     let start_x = start.0 as i32;
     let start_y = start.1 as i32;
     let mut result = Vec::new();
@@ -25,10 +24,10 @@ fn iter_in_direction<'a>(
         }
         result.push(characters[y as usize][x as usize]);
     }
-    result
+    result.iter().collect()
 }
 
-fn x_max_at_location(c: &Vec<Vec<&str>>, start: (usize, usize)) -> bool {
+fn x_mas_at_location(c: &Vec<Vec<char>>, start: (usize, usize)) -> bool {
     // Return true if the 3x3 grid with top-left at our specified location
     // contains a cross of the word "mas" in any direction
     let (x, y) = start;
@@ -60,35 +59,32 @@ fn possible_directions() -> Vec<(i32, i32)> {
 pub fn part_one(input: &str) -> Option<u32> {
     let characters = str_to_2d_vec(input);
     let word = "XMAS";
-    let mut found_count = 0;
-    for y in 0..characters.len() {
-        for x in 0..characters[0].len() {
-            for direction in possible_directions() {
-                let candidate_word = iter_in_direction(&characters, (x, y), direction)
-                    .iter()
-                    .map(|c| *c)
-                    .collect::<String>();
-                if candidate_word == word {
-                    found_count += 1;
-                }
-            }
-        }
-    }
+    let rows = characters.len();
+    let cols = characters[0].len();
 
-    Some(found_count)
+    let count = (0..cols)
+        .cartesian_product(0..rows)
+        .cartesian_product(possible_directions())
+        .filter(|((col, row), direction)| {
+            let candidate_word = iter_in_direction(&characters, (*col, *row), *direction);
+            candidate_word == word
+        })
+        .count();
+
+    Some(count as u32)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
     let characters = str_to_2d_vec(input);
-    let mut count = 0;
-    for y in 0..characters.len() {
-        for x in 0..characters[0].len() {
-            if x_max_at_location(&characters, (x, y)) {
-                count += 1;
-            }
-        }
-    }
-    Some(count)
+    let rows = characters.len();
+    let cols = characters[0].len();
+
+    let count = (0..cols)
+        .cartesian_product(0..rows)
+        .filter(|(col, row)| x_mas_at_location(&characters, (*col, *row)))
+        .count();
+
+    Some(count as u32)
 }
 
 #[cfg(test)]
