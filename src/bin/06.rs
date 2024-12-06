@@ -234,11 +234,16 @@ pub fn part_two(input: &str) -> Option<u32> {
     let (map, start_position, direction, max) = parse_input(input);
     // Try adding an obstacle at every empyt place in the map in turn
     // and see which options lead to an infinite loop
+    //
+    // First, solve the map without any obstacles
+    // This means we can later limit out trial obstacles to only those that
+    // are on the path we took
+    let solved_map = move_until_off_map(&map, start_position, direction, max)?;
 
-    let loops = map
+    let loops = solved_map
         .par_iter()
         .filter(|(obs_position, entity)| {
-            if **entity == Entity::Empty {
+            if matches!(**entity, Entity::Visited(_)) {
                 let mut new_map = map.clone();
                 new_map.insert(**obs_position, Entity::Obstacle);
                 match move_until_off_map(&new_map, start_position, direction, max) {
