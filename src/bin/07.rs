@@ -65,8 +65,6 @@ fn concat_numbers(left: usize, right: usize) -> usize {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    // Initialise tracing
-    tracing_subscriber::fmt::init();
     let allow_concat = false;
 
     Some(
