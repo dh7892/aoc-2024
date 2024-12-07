@@ -1,29 +1,12 @@
 advent_of_code::solution!(7);
 
-// use tracing::info;
-
-fn can_reach_target(target: usize, current_total: usize, operands: &[usize], index: usize) -> bool {
-    if index >= operands.len() {
-        return target == current_total;
-    }
-
-    if current_total > target {
-        return false;
-    }
-
-    let next_operand = operands[index];
-
-    can_reach_target(target, current_total + next_operand, operands, index + 1)
-        || can_reach_target(target, current_total * next_operand, operands, index + 1)
-}
-
-fn can_reach_target_with_concat(
+fn can_reach_target(
     target: usize,
     current_total: usize,
     operands: &[usize],
     index: usize,
+    allow_concat: bool,
 ) -> bool {
-    // Same as can_reach_target but with the added ability to concatenate numbers
     if index >= operands.len() {
         return target == current_total;
     }
@@ -34,14 +17,26 @@ fn can_reach_target_with_concat(
 
     let next_operand = operands[index];
 
-    can_reach_target_with_concat(target, current_total + next_operand, operands, index + 1)
-        || can_reach_target_with_concat(target, current_total * next_operand, operands, index + 1)
-        || can_reach_target_with_concat(
+    can_reach_target(
+        target,
+        current_total + next_operand,
+        operands,
+        index + 1,
+        allow_concat,
+    ) || can_reach_target(
+        target,
+        current_total * next_operand,
+        operands,
+        index + 1,
+        allow_concat,
+    ) || (allow_concat
+        && can_reach_target(
             target,
             concat_numbers(current_total, next_operand),
             operands,
             index + 1,
-        )
+            allow_concat,
+        ))
 }
 
 fn parse_line(input: &str) -> (usize, Vec<usize>) {
@@ -69,43 +64,41 @@ fn concat_numbers(left: usize, right: usize) -> usize {
     left + original_right
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<usize> {
     // Initialise tracing
     tracing_subscriber::fmt::init();
+    let allow_concat = false;
 
-    let result = input
-        .lines()
-        .filter_map(|line| {
-            let (target, operands) = parse_line(line);
-            if can_reach_target(target, operands[0], &operands, 1) {
-                Some(target as u64)
-            } else {
-                // info!("Failed to reach target {}", line);
-                None
-            }
-        })
-        .sum::<u64>();
-
-    println!("Result: {:?}", result);
-    Some(result as u32)
+    Some(
+        input
+            .lines()
+            .filter_map(|line| {
+                let (target, operands) = parse_line(line);
+                if can_reach_target(target, operands[0], &operands, 1, allow_concat) {
+                    Some(target)
+                } else {
+                    None
+                }
+            })
+            .sum::<usize>(),
+    )
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    let result = input
-        .lines()
-        .filter_map(|line| {
-            let (target, operands) = parse_line(line);
-            if can_reach_target_with_concat(target, operands[0], &operands, 1) {
-                Some(target as u64)
-            } else {
-                // info!("Failed to reach target {}", line);
-                None
-            }
-        })
-        .sum::<u64>();
-
-    println!("Result: {:?}", result);
-    Some(result as u32)
+pub fn part_two(input: &str) -> Option<usize> {
+    let allow_concat = true;
+    Some(
+        input
+            .lines()
+            .filter_map(|line| {
+                let (target, operands) = parse_line(line);
+                if can_reach_target(target, operands[0], &operands, 1, allow_concat) {
+                    Some(target)
+                } else {
+                    None
+                }
+            })
+            .sum::<usize>(),
+    )
 }
 
 #[cfg(test)]
@@ -131,7 +124,7 @@ mod tests {
         let operands = vec![2, 3, 4];
         let first_operand = operands[0];
         let remaining_operands = &operands[1..];
-        let result = can_reach_target(target, first_operand, &remaining_operands, 0);
+        let result = can_reach_target(target, first_operand, &remaining_operands, 0, false);
         assert_eq!(result, true);
     }
 
