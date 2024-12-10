@@ -31,6 +31,9 @@ fn input_to_map(input: &str) -> Map {
         }
     }
 
+    // Need a copy of the map so we can random access elements without the borrow
+    // checker getting angry. Only need the heights from this, so it's not a problem
+    // that we look at old values
     let old_map = map.clone();
 
     // Now loop over map and add connections
