@@ -130,7 +130,6 @@ fn mark_fences(map: &mut HashMap<Coordinate, Plot>, max: Coordinate) {
     let coords: Vec<Coordinate> = map.keys().cloned().collect();
     for coord in coords {
         let crop = map.get(&coord).unwrap().crop;
-        let neighbors = possible_neighbour_coords(coord, max);
         let mut fence_positions = HashSet::new();
         // Try North
         if coord.y > 0 {
@@ -209,6 +208,12 @@ fn iter_direction_for_fence_position(position: FencePosition) -> Coordinate {
     }
 }
 
+fn upsert_hashmap(sides: &mut HashMap<usize, usize>, id: usize) {
+    // Update or insert anything that's indexed by id and needs to be incremented
+    // This just saves a lot of boilerplate
+    sides.entry(id).and_modify(|old| *old += 1).or_insert(1);
+}
+
 fn find_sides(
     map: &HashMap<Coordinate, Plot>,
     max: Coordinate,
@@ -227,18 +232,11 @@ fn find_sides(
         if plot.id.unwrap() != prev_id {
             // Field changed so we need to add the last side if there was one
             if last_had_side {
-                // Update or insert the side
-                sides
-                    .entry(prev_id)
-                    .and_modify(|old| *old += 1)
-                    .or_insert(1);
+                upsert_hashmap(&mut sides, prev_id);
             }
         } else if last_had_side && !plot.fence_positions.contains(&position) {
             // Moved off the end of a fence
-            sides
-                .entry(prev_id)
-                .and_modify(|old| *old += 1)
-                .or_insert(1);
+            upsert_hashmap(&mut sides, prev_id);
         }
         last_had_side = plot.fence_positions.contains(&position);
         current_coordinate.x += iter.x;
@@ -247,52 +245,40 @@ fn find_sides(
     }
     // Add in the last side we were counting
     if last_had_side {
-        sides
-            .entry(prev_id)
-            .and_modify(|old| *old += 1)
-            .or_insert(1);
+        upsert_hashmap(&mut sides, prev_id);
     }
     sides
 }
 
 fn find_all_sides(map: &HashMap<Coordinate, Plot>, max: Coordinate) -> HashMap<usize, usize> {
     // Given a map, return the number of sides for each field indexed by id
-    let mut sides = HashMap::new();
     // find North and South sides
+    let mut sides_vec = vec![];
     for y in 0..=max.y {
         let start = Coordinate { x: 0, y };
         let north_sides = find_sides(map, max, start, FencePosition::North);
-        for (id, num_sides) in north_sides {
-            sides
-                .entry(id)
-                .and_modify(|count| *count += num_sides)
-                .or_insert(num_sides);
-        }
+        sides_vec.push(north_sides);
         let south_sides = find_sides(map, max, start, FencePosition::South);
-        for (id, num_sides) in south_sides {
-            sides
-                .entry(id)
-                .and_modify(|count| *count += num_sides)
-                .or_insert(num_sides);
-        }
+        sides_vec.push(south_sides);
     }
 
     // find East and West sides
     for x in 0..=max.x {
         let start = Coordinate { x, y: 0 };
         let east_sides = find_sides(map, max, start, FencePosition::East);
-        for (id, num_sides) in east_sides {
-            sides
-                .entry(id)
-                .and_modify(|count| *count += num_sides)
-                .or_insert(num_sides);
-        }
+        sides_vec.push(east_sides);
         let west_sides = find_sides(map, max, start, FencePosition::West);
-        for (id, num_sides) in west_sides {
+        sides_vec.push(west_sides);
+    }
+
+    // Compact the sides
+    let mut sides = HashMap::new();
+    for side in sides_vec {
+        for (id, count) in side {
             sides
                 .entry(id)
-                .and_modify(|count| *count += num_sides)
-                .or_insert(num_sides);
+                .and_modify(|old| *old += count)
+                .or_insert(count);
         }
     }
 
@@ -304,42 +290,13 @@ fn score_with_sides(map: &HashMap<Coordinate, Plot>, sides: HashMap<usize, usize
     let mut field_sizes = HashMap::new();
     for plot in map.values() {
         if let Some(id) = plot.id {
-            // Upsert the field area
-            field_sizes
-                .entry(id)
-                .and_modify(|count| *count += 1)
-                .or_insert(1);
-        }
-    }
-
-    let mut crop_for_field = HashMap::new();
-    for plot in map.values() {
-        if let Some(id) = plot.id {
-            crop_for_field
-                .entry(id)
-                .and_modify(|crop| {
-                    if *crop != plot.crop {
-                        *crop = '.';
-                    }
-                })
-                .or_insert(plot.crop);
+            upsert_hashmap(&mut field_sizes, id);
         }
     }
     // now we have fields sizes and sides, both indexed by id so we can calculate the score
     field_sizes
         .iter()
-        .map(|(id, size)| {
-            (
-                id,
-                size,
-                sides.get(id).or_else(|| Some(&0)).unwrap(),
-                crop_for_field.get(id).unwrap(),
-            )
-        })
-        .inspect(|(id, size, side, crop)| {
-            println!("Id: {}, Size: {}, Side: {}, Crop {}", id, size, side, crop);
-        })
-        .map(|(_id, size, side, _crop)| size * side)
+        .map(|(id, size)| (size * sides.get(id).unwrap()))
         .sum()
 }
 
