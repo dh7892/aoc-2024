@@ -204,11 +204,11 @@ pub fn part_one(input: &str) -> Option<u32> {
                 .iter()
                 .filter(|(_, entity)| matches!(**entity, Entity::Visited(_)))
                 .count();
-            return Some(visited as u32);
+            Some(visited as u32)
         }
         None => {
             // We ended up in an infinite loop
-            return None;
+            None
         }
     }
 }
@@ -229,10 +229,7 @@ pub fn part_two(input: &str) -> Option<u32> {
             if matches!(**entity, Entity::Visited(_)) {
                 let mut new_map = map.clone();
                 new_map.insert(**obs_position, Entity::Obstacle);
-                match move_until_off_map(&new_map, start_position, direction, max) {
-                    Some(_) => false,
-                    None => true,
-                }
+                move_until_off_map(&new_map, start_position, direction, max).is_none()
             } else {
                 false
             }
