@@ -298,7 +298,7 @@ mod tests {
         // 00.1..2.33.4
         // Should compress to
         // 0041332
-        let mut blocks = vec![
+        let blocks = vec![
             Block::File(0, 2),
             Block::Space(1),
             Block::File(1, 1),

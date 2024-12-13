@@ -121,23 +121,6 @@ fn next_position(position: Position, direction: Direction, max: Position) -> Opt
     }
 }
 
-fn print_map(map: &Map, max: Position) {
-    for y in 0..=max.y {
-        for x in 0..=max.x {
-            let position = Position { x, y };
-            match map.get(&position).unwrap_or(&Entity::Empty) {
-                Entity::Empty => print!("."),
-                Entity::Obstacle => print!("#"),
-                Entity::Visited(Direction::Down) => print!("v"),
-                Entity::Visited(Direction::Left) => print!("<"),
-                Entity::Visited(Direction::Right) => print!(">"),
-                Entity::Visited(Direction::Up) => print!("^"),
-            }
-        }
-        println!();
-    }
-}
-
 fn turn_right(direction: Direction) -> Direction {
     match direction {
         Direction::Up => Direction::Right,
