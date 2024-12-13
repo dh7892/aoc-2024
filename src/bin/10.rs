@@ -18,7 +18,7 @@ fn input_to_map(input: &str) -> Map {
     let mut map = Map::new();
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.chars().enumerate() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 let d = c.to_digit(10).unwrap() as usize;
                 map.insert(
                     (x, y),
@@ -40,7 +40,7 @@ fn input_to_map(input: &str) -> Map {
     for (coord, location) in map.iter_mut() {
         let (x, y) = coord;
         let height = location.height;
-        for (dx, dy) in vec![(0, 1), (1, 0), (0, -1), (-1, 0)] {
+        for (dx, dy) in [(0, 1), (1, 0), (0, -1), (-1, 0)] {
             let new_x = *x as i32 + dx;
             let new_y = *y as i32 + dy;
             if new_x >= 0 && new_y >= 0 {
@@ -88,7 +88,7 @@ fn paths_to_tops(map: &Map) -> Vec<Path> {
             let new_paths = &mut paths_from_location(map, *coord, Vec::new());
             for path in new_paths {
                 if !top_locations.contains(path.last().unwrap()) {
-                    top_locations.insert(path.clone().last().unwrap().clone());
+                    top_locations.insert(*path.clone().last().unwrap());
                     paths.push(path.clone());
                 }
             }

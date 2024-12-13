@@ -119,11 +119,11 @@ mod tests {
     #[test]
     fn test_example() {
         let target = 10;
-        let operands = vec![2, 3, 4];
+        let operands = [2, 3, 4];
         let first_operand = operands[0];
         let remaining_operands = &operands[1..];
-        let result = can_reach_target(target, first_operand, &remaining_operands, 0, false);
-        assert_eq!(result, true);
+        let result = can_reach_target(target, first_operand, remaining_operands, 0, false);
+        assert!(result);
     }
 
     #[rstest]

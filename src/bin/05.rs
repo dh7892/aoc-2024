@@ -212,7 +212,7 @@ mod tests {
             after: 2,
         };
         let pages = vec![(1, 0), (2, 1)].into_iter().collect();
-        assert_eq!(rule_applies(&rule, &pages), true);
+        assert!(rule_applies(&rule, &pages));
     }
 
     #[test]
@@ -222,6 +222,6 @@ mod tests {
             after: 2,
         };
         let pages = vec![(1, 0), (6, 1)].into_iter().collect();
-        assert_eq!(rule_applies(&rule, &pages), true);
+        assert!(rule_applies(&rule, &pages));
     }
 }

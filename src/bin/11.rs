@@ -34,7 +34,6 @@ fn blink_all_numbers(numbers: &[usize], count: usize) -> usize {
 
 fn input_to_numbers(input: &str) -> Vec<usize> {
     input
-        .trim()
         .split_whitespace()
         .map(|x| x.parse::<usize>().unwrap())
         .collect()

@@ -80,7 +80,7 @@ fn find_antinode(first: Position, second: Position, max: Position) -> Option<Pos
 
 fn all_antinodes(map: &HashMap<char, Vec<Position>>, max: Position) -> HashSet<Position> {
     let mut antinodes = HashSet::new();
-    for (_char, positions) in map {
+    for positions in map.values() {
         // Consider the cartesian product of all pairs of positions
         for (first, second) in positions.iter().tuple_combinations() {
             if let Some(antinode) = find_antinode(*first, *second, max) {
@@ -101,7 +101,7 @@ fn all_antinodes_including_resonant_frequencies(
     max: Position,
 ) -> HashSet<Position> {
     let mut antinodes = HashSet::new();
-    for (_char, positions) in map {
+    for positions in map.values() {
         // Consider the cartesian product of all pairs of positions
         for (first, second) in positions.iter().tuple_combinations() {
             // While there is an antinode from the two nodes

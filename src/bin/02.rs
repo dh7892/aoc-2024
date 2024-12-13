@@ -50,7 +50,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     // Find lines that are safe or have a permutation that is safe
     let safe_lines = data
         .iter()
-        .filter(|line| is_safe(line) || permute_line(line).iter().any(|line| is_safe(line)))
+        .filter(|line| is_safe(line) || permute_line(line).iter().any(is_safe))
         .count() as u32;
     Some(safe_lines)
 }

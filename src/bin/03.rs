@@ -20,7 +20,7 @@ enum Operator {
 }
 
 fn number_1_to_3_digits(input: &str) -> IResult<&str, &str> {
-    verify(digit1, |s: &str| s.len() >= 1 && s.len() <= 3)(input)
+    verify(digit1, |s: &str| !s.is_empty() && s.len() <= 3)(input)
 }
 
 fn mul_parser(input: &str) -> IResult<&str, Operator> {

@@ -36,8 +36,8 @@ fn x_mas_at_location(c: &Vec<Vec<char>>, start: (usize, usize)) -> bool {
     if x >= c[0].len() - 2 || y >= c.len() - 2 {
         return false;
     }
-    let first_diagonal = String::from_iter([c[y + 0][x + 0], c[y + 1][x + 1], c[y + 2][x + 2]]);
-    let second_diagonal = String::from_iter([c[y + 2][x + 0], c[y + 1][x + 1], c[y + 0][x + 2]]);
+    let first_diagonal = String::from_iter([c[y][x], c[y + 1][x + 1], c[y + 2][x + 2]]);
+    let second_diagonal = String::from_iter([c[y + 2][x], c[y + 1][x + 1], c[y][x + 2]]);
 
     (first_diagonal == "MAS" || first_diagonal == "SAM")
         && (second_diagonal == "MAS" || second_diagonal == "SAM")
