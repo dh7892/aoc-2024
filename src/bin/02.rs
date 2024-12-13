@@ -2,7 +2,7 @@ advent_of_code::solution!(2);
 
 use itertools::Itertools;
 
-fn is_safe(data: &Vec<i32>) -> bool {
+fn is_safe(data: &[i32]) -> bool {
     let (min, max) = data
         .iter()
         .tuple_windows()
@@ -13,11 +13,11 @@ fn is_safe(data: &Vec<i32>) -> bool {
     (min > -4 && max < 0) || (min > 0 && max < 4)
 }
 
-fn permute_line(data: &Vec<i32>) -> Vec<Vec<i32>> {
+fn permute_line(data: &[i32]) -> Vec<Vec<i32>> {
     // return a vector of variations of the input that have each element removed in turn
     let mut result = Vec::new();
     for i in 0..data.len() {
-        let mut new_data = data.clone();
+        let mut new_data = data.to_owned();
         new_data.remove(i);
         result.push(new_data);
     }
@@ -32,7 +32,7 @@ pub fn part_one(input: &str) -> Option<u32> {
                 .map(|n| n.parse::<i32>().unwrap())
                 .collect()
         })
-        .filter(is_safe)
+        .filter(|v: &Vec<i32>| is_safe(v.as_slice()))
         .count() as u32;
     Some(result)
 }
@@ -50,7 +50,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     // Find lines that are safe or have a permutation that is safe
     let safe_lines = data
         .iter()
-        .filter(|line| is_safe(line) || permute_line(line).iter().any(is_safe))
+        .filter(|line| is_safe(line) || permute_line(line).iter().any(|v| is_safe(v.as_slice())))
         .count() as u32;
     Some(safe_lines)
 }

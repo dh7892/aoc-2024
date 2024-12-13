@@ -8,7 +8,7 @@ fn str_to_2d_vec(input: &str) -> Vec<Vec<char>> {
 }
 
 fn iter_in_direction(
-    characters: &Vec<Vec<char>>,
+    characters: &[Vec<char>],
     start: (usize, usize),
     direction: (i32, i32),
 ) -> String {
@@ -27,7 +27,7 @@ fn iter_in_direction(
     result.iter().collect()
 }
 
-fn x_mas_at_location(c: &Vec<Vec<char>>, start: (usize, usize)) -> bool {
+fn x_mas_at_location(c: &[Vec<char>], start: (usize, usize)) -> bool {
     // Return true if the 3x3 grid with top-left at our specified location
     // contains a cross of the word "mas" in any direction
     let (x, y) = start;

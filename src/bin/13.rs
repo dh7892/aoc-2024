@@ -10,6 +10,8 @@ use nom::{
     IResult,
 };
 
+type Vec2 = Vector2<i64>;
+
 fn parse_number(input: &str) -> IResult<&str, i64> {
     map_res(
         // This will handle both +123 and -123
@@ -21,7 +23,7 @@ fn parse_number(input: &str) -> IResult<&str, i64> {
     )(input)
 }
 
-fn parse_ivec2(input: &str) -> IResult<&str, Vector2<i64>> {
+fn parse_ivec2(input: &str) -> IResult<&str, Vec2> {
     // Given some input, try to parse it to get an Vector2
     // Format will be: X<number>, Y<number>
     let (input, (x, y)) = separated_pair(
@@ -32,7 +34,7 @@ fn parse_ivec2(input: &str) -> IResult<&str, Vector2<i64>> {
     Ok((input, Vector2::new(x, y)))
 }
 
-fn parse_target(input: &str) -> IResult<&str, Vector2<i64>> {
+fn parse_target(input: &str) -> IResult<&str, Vec2> {
     // Given some input, try to parse it to get an Vector2
     // Format will be: Prize: X=<number>, Y=<number>
     let (input, _) = tag("X=")(input)?;
@@ -42,7 +44,7 @@ fn parse_target(input: &str) -> IResult<&str, Vector2<i64>> {
     Ok((input, Vector2::new(x, y)))
 }
 
-fn parse_block(input: &str) -> IResult<&str, (Vector2<i64>, Vector2<i64>, Vector2<i64>)> {
+fn parse_block(input: &str) -> IResult<&str, (Vec2, Vec2, Vec2)> {
     // Given some input, try to parse it to get the A, B and target values
     // Format will be:
     // Button A: X<number], Y<number>
@@ -57,11 +59,7 @@ fn parse_block(input: &str) -> IResult<&str, (Vector2<i64>, Vector2<i64>, Vector
     Ok((input, (a, b, prize)))
 }
 
-fn find_solutions_alg(
-    a_vec: Vector2<i64>,
-    b_vec: Vector2<i64>,
-    target: Vector2<i64>,
-) -> Vec<(i64, i64)> {
+fn find_solutions_alg(a_vec: Vec2, b_vec: Vec2, target: Vec2) -> Vec<(i64, i64)> {
     let denomenator = a_vec.x * b_vec.y - a_vec.y * b_vec.x;
     let numerator = a_vec.x * target.y - a_vec.y * target.x;
     if denomenator == 0 {
@@ -86,7 +84,7 @@ fn cost_for_solution(a: i64, b: i64) -> i64 {
     a * 3 + b
 }
 
-fn parse_input(input: &str) -> IResult<&str, Vec<(Vector2<i64>, Vector2<i64>, Vector2<i64>)>> {
+fn parse_input(input: &str) -> IResult<&str, Vec<(Vec2, Vec2, Vec2)>> {
     separated_list1(pair(line_ending, line_ending), parse_block)(input)
 }
 

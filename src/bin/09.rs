@@ -45,23 +45,20 @@ fn try_move_block(blocks: &mut Vec<Block>, i: usize, j: usize) -> bool {
     let block = blocks[i];
     let space = blocks[j];
     match (block, space) {
-        (Block::File(id, length), Block::Space(space_length)) => {
-            if length == space_length {
+        (Block::File(id, length), Block::Space(space_length)) => match length.cmp(&space_length) {
+            std::cmp::Ordering::Equal => {
                 blocks[i] = Block::Space(length);
                 blocks[j] = Block::File(id, length);
                 true
-            } else if length < space_length {
-                // Replace the original block with a space of the same length
-                // Do this first in case we inserted a space in the middle of the blocks
+            }
+            std::cmp::Ordering::Less => {
                 blocks[i] = Block::Space(length);
                 blocks[j] = Block::File(id, length);
-                // Insert a new space block after the new file block
                 blocks.insert(j + 1, Block::Space(space_length - length));
                 true
-            } else {
-                false
             }
-        }
+            _ => false,
+        },
         _ => false,
     }
 }
@@ -147,8 +144,8 @@ fn compress_filesystem(file_system: &FileSystem) -> Vec<usize> {
     // Make a copy of the file system reversed with all the Nones removed
     let mut empty_removed = file_system
         .iter()
-        .filter(|x| x.is_some())
-        .map(|x| x.unwrap())
+        .flatten()
+        .cloned()
         .collect::<Vec<usize>>();
     let num_chunks = empty_removed.len();
 

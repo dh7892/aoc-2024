@@ -54,8 +54,9 @@ fn parse_pages(input: &str) -> IResult<&str, HashMap<usize, usize>> {
             .collect(),
     ))
 }
+type Pages = Vec<HashMap<usize, usize>>;
 
-fn parse_all_pages(input: &str) -> IResult<&str, Vec<HashMap<usize, usize>>> {
+fn parse_all_pages(input: &str) -> IResult<&str, Pages> {
     // Parse a list of pages
     separated_list1(line_ending, parse_pages)(input)
 }
@@ -67,7 +68,7 @@ fn middle_page(pages: &HashMap<usize, usize>) -> usize {
     *pages[pages.len() / 2].0
 }
 
-fn read_all_input(input: &str) -> IResult<&str, (Vec<Rule>, Vec<HashMap<usize, usize>>)> {
+fn read_all_input(input: &str) -> IResult<&str, (Vec<Rule>, Pages)> {
     // Parse the rules and the pages
     let (input, rules) = parse_all_rules(input)?;
     // Blank line
