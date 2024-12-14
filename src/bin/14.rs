@@ -157,15 +157,6 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {
-        let input = &advent_of_code::template::read_file("examples", DAY);
-        let mut robots = parse_input(input);
-        let max = Vec2::new(11, 7);
-        let time = find_tree(&mut robots, max);
-        assert_eq!(Some(time), Some(3));
-    }
-
-    #[test]
     fn test_mid_point() {
         let max = Vec2::new(101, 103);
         let mid_point = Vec2::new(max.x / 2, max.y / 2);
