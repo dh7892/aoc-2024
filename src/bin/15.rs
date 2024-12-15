@@ -15,6 +15,8 @@ struct Position {
 enum Object {
     Wall,
     Box,
+    LeftBox,
+    RightBox,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -97,6 +99,8 @@ impl Map {
                 match self.get(Position { x, y }) {
                     Some(Object::Wall) => print!("#"),
                     Some(Object::Box) => print!("O"),
+                    Some(Object::LeftBox) => print!("["),
+                    Some(Object::RightBox) => print!("]"),
                     None => print!("."),
                 }
             }
@@ -158,80 +162,80 @@ fn parse_input(input: &str) -> (Map, Position, Vec<Direction>) {
     (map, position, directions)
 }
 
-fn steps_to_nearest_gap(map: &Map, position: Position, direction: &Direction) -> usize {
-    // Return the number of steps to the nearest gap (not wall or box) in the given direction
-    // If there is no gap, return 0
-    let mut distance: usize = 0;
-    let (dx, dy) = (direction.dx(), direction.dy());
-
-    loop {
-        distance += 1;
-        let p = Position {
-            x: position.x + dx * distance as i32,
-            y: position.y + dy * distance as i32,
-        };
-        if map.get(p) == None {
-            break;
-        }
-
-        if p.x < 0 || p.y < 0 || p.x > map.max().x || p.y > map.max().y {
-            return 0;
-        }
-
-        if map.get(p) == Some(&Object::Wall) {
-            return 0;
-        }
-    }
-
-    distance
-}
-
 fn calc_score(box_map: &Map) -> usize {
     // Calculate the score of the map
     // Sum up the GPS score for each box
     // The GPS score is y*100 + x
     box_map
         .iter()
-        .filter(|(_, o)| **o == Object::Box)
+        .filter(|(_, o)| **o == Object::Box || **o == Object::LeftBox)
         .map(|(p, _)| (p.y * 100 + p.x) as usize)
         .sum()
 }
 
 fn move_robot(map: &mut Map, position: Position, direction: Direction) -> Position {
-    // Move the robot in the given direction
-    // If the robot can't move, return the original position
+    let next_position = Position {
+        x: position.x + direction.dx(),
+        y: position.y + direction.dy(),
+    };
 
-    // Check where our nearest gap is
-    let distance = steps_to_nearest_gap(map, position, &direction);
-    if distance == 0 {
-        // Can't move anything as there are no gaps
+    let (success, mut new_positions) = try_push_blocks(next_position, map, direction);
+    if !success {
         return position;
     }
 
-    let (dx, dy) = (direction.dx(), direction.dy());
-
-    // Now loop through the steps and move the box if there is one
-    // (Loop backwards so we don't try to move a box on top of another box)
-    for i in (1..distance).rev() {
-        let p = Position {
-            x: position.x + dx * i as i32,
-            y: position.y + dy * i as i32,
-        };
-        // Remove the old box
-        map.map.remove(&p);
-        // Add the new box
-        map.add(
-            Position {
-                x: p.x + dx,
-                y: p.y + dy,
-            },
-            Object::Box,
-        );
+    // If we're moving vertically and or next position is a left or right box
+    // We need to move the other half of the box, too
+    if direction.dy() != 0 {
+        match map.get(next_position) {
+            Some(Object::LeftBox) => {
+                let other_position = Position {
+                    x: next_position.x + 1,
+                    y: next_position.y,
+                };
+                let (other_success, other_new_positions) =
+                    try_push_blocks(other_position, map, direction);
+                if other_success {
+                    new_positions.extend(other_new_positions);
+                } else {
+                    // Couldn't move the other block so can't move
+                    return position;
+                }
+            }
+            Some(Object::RightBox) => {
+                let other_position = Position {
+                    x: next_position.x - 1,
+                    y: next_position.y,
+                };
+                let (other_success, other_new_positions) =
+                    try_push_blocks(other_position, map, direction);
+                if other_success {
+                    new_positions.extend(other_new_positions);
+                } else {
+                    // Couldn't move the other block so can't move
+                    return position;
+                }
+            }
+            _ => (),
+        }
     }
 
+    // NOTE due to the way the algorithm works, there will be duplicates in the lists
+    // This is fine as both remove and add will not break in these cases
+    let old_positions = new_positions.iter().map(|(p, _, _)| *p).collect::<Vec<_>>();
+    let new_objects = new_positions
+        .iter()
+        .map(|(_, p, o)| (*p, *o))
+        .collect::<Vec<_>>();
+    for p in old_positions {
+        map.map.remove(&p);
+    }
+    for (p, o) in new_objects {
+        map.add(p, o);
+    }
     Position {
-        x: position.x + dx,
-        y: position.y + dy,
+        x: position.x + direction.dx(),
+        y: position.y + direction.dy(),
     }
 }
 
@@ -239,7 +243,7 @@ fn try_push_blocks(
     position: Position,
     map: &Map,
     direction: Direction,
-) -> (bool, Vec<(Position, Position)>) {
+) -> (bool, Vec<(Position, Position, Object)>) {
     // Check recursively if we can push all the blocks in the given direction
     // The check goes like this:
     // If the next positon is a wall, return false
@@ -254,12 +258,17 @@ fn try_push_blocks(
         y: position.y + dy,
     };
 
-    let mut new_positions = vec![(position, next_position)];
+    let current_object = match map.get(position) {
+        Some(Object::Wall) => return (false, vec![]),
+        Some(o) => *o,
+        None => return (true, vec![]),
+    };
+    let mut new_positions = vec![(position, next_position, current_object)];
     match map.get(next_position) {
         Some(Object::Wall) => (false, vec![]),
         None => (true, new_positions),
         Some(Object::Box) => {
-            let (can_push, other_new_positions) = can_push_blocks(next_position, map, direction);
+            let (can_push, other_new_positions) = try_push_blocks(next_position, map, direction);
             if can_push {
                 new_positions.extend(other_new_positions);
             } else {
@@ -268,7 +277,86 @@ fn try_push_blocks(
 
             (can_push, new_positions)
         }
+        Some(Object::LeftBox) => {
+            let (can_push, other_new_positions) = try_push_blocks(next_position, map, direction);
+            if can_push {
+                new_positions.extend(other_new_positions);
+            } else {
+                return (false, vec![]);
+            }
+
+            // If we are moving vertically, we also need to try to push the other half of this box
+            if dy != 0 {
+                let other_position = Position {
+                    x: next_position.x + 1,
+                    y: next_position.y,
+                };
+                let (other_can_push, other_other_new_positions) =
+                    try_push_blocks(other_position, map, direction);
+                if other_can_push {
+                    new_positions.extend(other_other_new_positions);
+                } else {
+                    return (false, vec![]);
+                }
+            }
+
+            (can_push, new_positions)
+        }
+        Some(Object::RightBox) => {
+            let (can_push, other_new_positions) = try_push_blocks(next_position, map, direction);
+            if can_push {
+                new_positions.extend(other_new_positions);
+            } else {
+                return (false, vec![]);
+            }
+
+            // If we are moving vertically, we also need to try to push the other half of this box
+            if dy != 0 {
+                let other_position = Position {
+                    x: next_position.x - 1,
+                    y: next_position.y,
+                };
+                let (other_can_push, other_other_new_positions) =
+                    try_push_blocks(other_position, map, direction);
+                if other_can_push {
+                    new_positions.extend(other_other_new_positions);
+                } else {
+                    return (false, vec![]);
+                }
+            }
+
+            (can_push, new_positions)
+        }
     }
+}
+
+fn expand_map(map: &Map, position: Position) -> (Map, Position) {
+    // Expand by doubling in the x direction
+    let mut new_map = Map::new();
+    for (p, o) in map.iter() {
+        let new_p = Position { x: p.x * 2, y: p.y };
+        let new_extra_p = Position {
+            x: p.x * 2 + 1,
+            y: p.y,
+        };
+        match o {
+            Object::Wall => {
+                new_map.add(new_p, Object::Wall);
+                new_map.add(new_extra_p, Object::Wall);
+            }
+            Object::Box => {
+                new_map.add(new_p, Object::LeftBox);
+                new_map.add(new_extra_p, Object::RightBox);
+            }
+            Object::LeftBox => panic!("LeftBox not implemented"),
+            Object::RightBox => panic!("RightBox not implemented"),
+        }
+    }
+    let new_position = Position {
+        x: position.x * 2,
+        y: position.y,
+    };
+    (new_map, new_position)
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -282,7 +370,14 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    None
+    let (map, position, directions) = parse_input(input);
+    let (mut map, mut position) = expand_map(&map, position);
+    for direction in directions {
+        position = move_robot(&mut map, position, direction);
+    }
+    let score = calc_score(&map);
+
+    Some(score)
 }
 
 #[cfg(test)]
@@ -298,7 +393,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(9021));
     }
 
     #[test]
@@ -349,5 +444,20 @@ mod tests {
         let new_position = move_robot(&mut map, position, direction);
         // Shouldn't be able to move
         assert_eq!(new_position, Position { x: 2, y: 2 });
+    }
+
+    #[test]
+    fn test_part_2_small_example() {
+        let input = "#######
+#...#.#
+#.....#
+#..OO@#
+#..O..#
+#.....#
+#######
+
+<vv<<^^<<^^";
+        let result = part_two(input);
+        assert_eq!(result, Some(618));
     }
 }
