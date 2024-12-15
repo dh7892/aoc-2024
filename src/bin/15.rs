@@ -44,92 +44,28 @@ impl Direction {
     }
 }
 
-struct Map {
-    map: HashMap<Position, Object>,
-    max: Position,
-}
-
-impl Map {
-    fn new() -> Self {
-        Self {
-            map: HashMap::new(),
-            max: Position { x: 0, y: 0 },
-        }
-    }
-
-    fn add(&mut self, position: Position, object: Object) {
-        self.map.insert(position, object);
-        // Update the max position
-        if position.x > self.max.x {
-            self.max.x = position.x;
-        }
-        if position.y > self.max.y {
-            self.max.y = position.y;
-        }
-    }
-
-    fn get(&self, position: Position) -> Option<&Object> {
-        self.map.get(&position)
-    }
-
-    fn max(&self) -> Position {
-        self.max
-    }
-
-    // Debug
-    fn print(&self, robot_position: Position) {
-        let mut min_x = 0;
-        let mut max_x = 0;
-        let mut min_y = 0;
-        let mut max_y = 0;
-
-        for position in self.map.keys() {
-            min_x = min_x.min(position.x);
-            max_x = max_x.max(position.x);
-            min_y = min_y.min(position.y);
-            max_y = max_y.max(position.y);
-        }
-
-        for y in min_y..=max_y {
-            for x in min_x..=max_x {
-                if (robot_position == Position { x, y }) {
-                    print!("@");
-                    continue;
-                }
-                match self.get(Position { x, y }) {
-                    Some(Object::Wall) => print!("#"),
-                    Some(Object::Box) => print!("O"),
-                    Some(Object::LeftBox) => print!("["),
-                    Some(Object::RightBox) => print!("]"),
-                    None => print!("."),
-                }
-            }
-            println!();
-        }
-    }
-    fn iter(&self) -> std::collections::hash_map::Iter<Position, Object> {
-        self.map.iter()
-    }
-}
+type Map = HashMap<Position, Object>;
 
 fn read_map(input: &str) -> (Map, Position) {
     // Read the map and the position of the robot
     let mut position = Position { x: 0, y: 0 };
     let mut map = Map::new();
 
-    let mut y = 0;
-    for line in input.lines() {
-        let mut x = 0;
-        for c in line.chars() {
+    for (y, line) in input.lines().enumerate() {
+        for (x, c) in line.chars().enumerate() {
+            let x = x as i32;
+            let y = y as i32;
             match c {
-                '#' => map.add(Position { x, y }, Object::Wall),
-                'O' => map.add(Position { x, y }, Object::Box),
+                '#' => {
+                    map.insert(Position { x, y }, Object::Wall);
+                }
+                'O' => {
+                    map.insert(Position { x, y }, Object::Box);
+                }
                 '@' => position = Position { x, y },
                 _ => {}
             }
-            x += 1;
         }
-        y += 1;
     }
 
     (map, position)
@@ -187,7 +123,7 @@ fn move_robot(map: &mut Map, position: Position, direction: Direction) -> Positi
     // If we're moving vertically and or next position is a left or right box
     // We need to move the other half of the box, too
     if direction.dy() != 0 {
-        match map.get(next_position) {
+        match map.get(&next_position) {
             Some(Object::LeftBox) => {
                 let other_position = Position {
                     x: next_position.x + 1,
@@ -228,10 +164,10 @@ fn move_robot(map: &mut Map, position: Position, direction: Direction) -> Positi
         .map(|(_, p, o)| (*p, *o))
         .collect::<Vec<_>>();
     for p in old_positions {
-        map.map.remove(&p);
+        map.remove(&p);
     }
     for (p, o) in new_objects {
-        map.add(p, o);
+        map.insert(p, o);
     }
     Position {
         x: position.x + direction.dx(),
@@ -258,13 +194,13 @@ fn try_push_blocks(
         y: position.y + dy,
     };
 
-    let current_object = match map.get(position) {
+    let current_object = match map.get(&position) {
         Some(Object::Wall) => return (false, vec![]),
         Some(o) => *o,
         None => return (true, vec![]),
     };
     let mut new_positions = vec![(position, next_position, current_object)];
-    match map.get(next_position) {
+    match map.get(&next_position) {
         Some(Object::Wall) => (false, vec![]),
         None => (true, new_positions),
         Some(Object::Box) => {
@@ -341,12 +277,12 @@ fn expand_map(map: &Map, position: Position) -> (Map, Position) {
         };
         match o {
             Object::Wall => {
-                new_map.add(new_p, Object::Wall);
-                new_map.add(new_extra_p, Object::Wall);
+                new_map.insert(new_p, Object::Wall);
+                new_map.insert(new_extra_p, Object::Wall);
             }
             Object::Box => {
-                new_map.add(new_p, Object::LeftBox);
-                new_map.add(new_extra_p, Object::RightBox);
+                new_map.insert(new_p, Object::LeftBox);
+                new_map.insert(new_extra_p, Object::RightBox);
             }
             Object::LeftBox => panic!("LeftBox not implemented"),
             Object::RightBox => panic!("RightBox not implemented"),
