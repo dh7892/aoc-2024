@@ -1,7 +1,6 @@
 advent_of_code::solution!(16);
 
-use pathfinding::prelude::dijkstra;
-use pathfinding::prelude::yen;
+use pathfinding::prelude::*;
 use std::collections::HashSet;
 
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -118,12 +117,40 @@ fn solve(map: &Map, start: (usize, usize), end: (usize, usize)) -> Option<usize>
         direction: Direction::East,
     };
     // Could end facing either North or East, so we'll need to try both and see which is shorter.
-    let result = dijkstra(
+    let result = astar(
         &start_node,
         |node| successors(node, map),
+        |_| 0,
         |node| (node.x == end.0 && node.y == end.1),
     )?;
     Some(result.1)
+}
+
+fn find_all_places_on_best_path(
+    map: &Map,
+    start: (usize, usize),
+    end: (usize, usize),
+) -> Option<usize> {
+    let start_node = Node {
+        x: start.0,
+        y: start.1,
+        direction: Direction::East,
+    };
+    // Use astar_bag to get all possible optimal paths
+    let result = astar_bag(
+        &start_node,
+        |node| successors(node, map),
+        |_| 0,
+        |node| (node.x == end.0 && node.y == end.1),
+    )
+    .expect("Can't find any path");
+    Some(
+        result
+            .0
+            .flat_map(|path| path.into_iter().map(|node| (node.x, node.y)))
+            .collect::<HashSet<_>>()
+            .len(),
+    )
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -133,32 +160,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 
 pub fn part_two(input: &str) -> Option<usize> {
     let (map, start, end) = input_to_map(input);
-    let start_node = Node {
-        x: start.0,
-        y: start.1,
-        direction: Direction::East,
-    };
-    // Could end facing either North or East, so we'll need to try both and see which is shorter.
-    let result = yen(
-        &start_node,
-        |node| successors(node, &map),
-        |node| (node.x == end.0 && node.y == end.1),
-        100,
-    );
-    let shortest_cost = result[0].1;
-    let optimal_paths = result
-        .iter()
-        .filter(|r| r.1 == shortest_cost)
-        .map(|r| r.0.clone())
-        .collect::<Vec<_>>();
-    println!("{:?}", optimal_paths.len());
-    let mut node_locations: HashSet<(usize, usize)> = HashSet::new();
-    for path in optimal_paths {
-        for node in path {
-            node_locations.insert((node.x, node.y));
-        }
-    }
-    Some(node_locations.len())
+    find_all_places_on_best_path(&map, start, end)
 }
 
 #[cfg(test)]
@@ -174,6 +176,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(45));
     }
 }
