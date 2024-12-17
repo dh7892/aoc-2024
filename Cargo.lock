@@ -32,6 +32,7 @@ dependencies = [
  "pico-args",
  "rayon",
  "rstest",
+ "rustc-hash 2.1.0",
  "scan_fmt",
  "tinyjson",
  "tracing",
