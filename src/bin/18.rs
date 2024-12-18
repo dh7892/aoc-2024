@@ -80,29 +80,12 @@ fn has_solution(obstacles: &Obstacles, max: &Position) -> bool {
     .is_some()
 }
 
-fn find_first_block_that_blocks_solution(
-    all_obstacles: &[Position],
-    max: &Position,
-    start: usize,
-) -> Position {
-    let mut obstacles = Obstacles::new();
-    for (i, obstacle) in all_obstacles.iter().enumerate() {
-        obstacles.insert(obstacle.clone());
-        if i < start {
-            continue;
-        }
-
-        if !has_solution(&obstacles, max) {
-            return obstacle.clone();
-        }
-    }
-    panic!("No solution found");
-}
-
 fn exponential_search(all_obstacles: &[Position], max: &Position, start: usize) -> Position {
     let mut last_successful = start;
     let mut delta = start;
+    // let mut iterations = 0;
     while delta > 1 {
+        // iterations += 1;
         delta /= 2;
         let next = last_successful + delta;
         let has_solution = has_solution(&all_obstacles.iter().take(next).cloned().collect(), max);
@@ -110,9 +93,10 @@ fn exponential_search(all_obstacles: &[Position], max: &Position, start: usize) 
             last_successful = next;
             // Since we found a solution, we can increase the delta
             // We'd already halved it so multiply by for to achieve double the original
-            delta = delta * 4;
+            delta *= 4;
         }
     }
+    // println!("Iterations: {}, value {}", iterations, last_successful);
     all_obstacles[last_successful].clone()
 }
 
@@ -138,8 +122,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<String> {
     let obstacles = parse_obstacles(input);
     let start = 1024;
-    let position =
-        find_first_block_that_blocks_solution(&obstacles, &Position { x: 70, y: 70 }, start);
+    let position = exponential_search(&obstacles, &Position { x: 70, y: 70 }, start);
     let result = format!("{},{}", position.x, position.y);
     Some(result)
 }
