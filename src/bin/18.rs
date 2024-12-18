@@ -80,26 +80,6 @@ fn has_solution(obstacles: &Obstacles, max: &Position) -> bool {
     .is_some()
 }
 
-fn exponential_search(all_obstacles: &[Position], max: &Position, start: usize) -> Position {
-    let mut last_successful = start;
-    let mut delta = start;
-    // let mut iterations = 0;
-    while delta > 1 {
-        // iterations += 1;
-        delta /= 2;
-        let next = last_successful + delta;
-        let has_solution = has_solution(&all_obstacles.iter().take(next).cloned().collect(), max);
-        if has_solution {
-            last_successful = next;
-            // Since we found a solution, we can increase the delta
-            // We'd already halved it so multiply by for to achieve double the original
-            delta *= 4;
-        }
-    }
-    // println!("Iterations: {}, value {}", iterations, last_successful);
-    all_obstacles[last_successful].clone()
-}
-
 fn binary_search(all_obstacles: &[Position], max: &Position, start: usize) -> Position {
     let mut low = start;
     let mut high = all_obstacles.len();
