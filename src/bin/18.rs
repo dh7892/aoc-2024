@@ -100,6 +100,21 @@ fn exponential_search(all_obstacles: &[Position], max: &Position, start: usize) 
     all_obstacles[last_successful].clone()
 }
 
+fn binary_search(all_obstacles: &[Position], max: &Position, start: usize) -> Position {
+    let mut low = start;
+    let mut high = all_obstacles.len();
+    while low < high {
+        let mid = (low + high) / 2;
+        let has_solution = has_solution(&all_obstacles.iter().take(mid).cloned().collect(), max);
+        if has_solution {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    all_obstacles[low - 1].clone()
+}
+
 pub fn part_one(input: &str) -> Option<usize> {
     let obstacles = parse_obstacles(input);
     let obstacles = obstacles.iter().take(1024).cloned().collect::<Obstacles>();
@@ -122,7 +137,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<String> {
     let obstacles = parse_obstacles(input);
     let start = 1024;
-    let position = exponential_search(&obstacles, &Position { x: 70, y: 70 }, start);
+    let position = binary_search(&obstacles, &Position { x: 70, y: 70 }, start);
     let result = format!("{},{}", position.x, position.y);
     Some(result)
 }
