@@ -104,8 +104,16 @@ fn locations_n_away(
     // Return a list of all positions that are on a path and have a manhattan distance of n
     // from the starting point
     let mut result = Vec::new();
-    for x in 0..=max.x {
-        for y in 0..=max.y {
+    let min_cheat = Position {
+        x: (start.x as isize - n as isize).max(0) as usize,
+        y: (start.y as isize - n as isize).max(0) as usize,
+    };
+    let max_cheat = Position {
+        x: (start.x + n).min(max.x),
+        y: (start.y + n).min(max.y),
+    };
+    for x in min_cheat.x..=max_cheat.x {
+        for y in min_cheat.y..=max_cheat.y {
             let pos = Position { x, y };
             if map.contains(&pos) {
                 continue;
@@ -254,31 +262,6 @@ mod tests {
 
         let all_cheat_paths = try_all_cheats_along_path(&map, path_without_cheating, &end, &max, 2);
         assert_eq!(all_cheat_paths.len(), 44);
-
-        // dbg!(&all_cheat_paths);
-
-        //let savings = vec![
-        //    //(time_saved, number_of_ways_to achieve)
-        //    (2, 14),
-        //    (4, 14),
-        //    (6, 2),
-        //    (8, 4),
-        //    (10, 2),
-        //    (12, 3),
-        //    (20, 1),
-        //    (36, 1),
-        //    (38, 1),
-        //    (40, 1),
-        //    (64, 1),
-        //];
-        // for (saving, expected_count) in savings {
-        //     let count = all_cheat_paths
-        //         .iter()
-        //         .map(|x| len_path_without_cheating - x)
-        //         .filter(|x| *x == saving)
-        //         .count();
-        //     assert_eq!(count, expected_count);
-        // }
     }
 
     #[test]
