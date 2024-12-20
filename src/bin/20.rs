@@ -103,28 +103,38 @@ fn locations_n_away(
 ) -> Vec<Position> {
     // Return a list of all positions that are on a path and have a manhattan distance of n
     // from the starting point
+    // We do this by checking all points in a diamond shape around the starting point
     let mut result = Vec::new();
-    let min_cheat = Position {
-        x: (start.x as isize - n as isize).max(0) as usize,
-        y: (start.y as isize - n as isize).max(0) as usize,
-    };
-    let max_cheat = Position {
-        x: (start.x + n).min(max.x),
-        y: (start.y + n).min(max.y),
-    };
-    for x in min_cheat.x..=max_cheat.x {
-        for y in min_cheat.y..=max_cheat.y {
-            let pos = Position { x, y };
-            if map.contains(&pos) {
-                continue;
-            }
-            if (start.x as isize - pos.x as isize).abs() + (start.y as isize - pos.y as isize).abs()
-                == n as isize
-            {
+
+    // From left point to top point
+    let min_x = start.x as isize - n as isize;
+    let max_x = start.x as isize + n as isize;
+    for x in min_x..=max_x {
+        let dy = n as isize - (start.x as isize - x).abs();
+        let y1 = start.y as isize + dy;
+        if y1 >= 0 && y1 < max.y as isize {
+            let pos = Position {
+                x: x.max(0) as usize,
+                y: y1 as usize,
+            };
+            if !map.contains(&pos) {
                 result.push(pos);
             }
         }
+        if dy > 0 {
+            let y2 = start.y as isize - dy;
+            if y2 >= 0 && y2 < max.y as isize {
+                let pos = Position {
+                    x: x.max(0) as usize,
+                    y: y2 as usize,
+                };
+                if !map.contains(&pos) {
+                    result.push(pos);
+                }
+            }
+        }
     }
+
     result
 }
 
@@ -279,5 +289,21 @@ mod tests {
         let other_posn = Position { x: 5, y: 3 };
         let result = locations_n_away(&map, &other_posn, 2, &max);
         assert_eq!(result.len(), 3);
+    }
+    #[test]
+    fn test_locations_n_away_again() {
+        let input = &advent_of_code::template::read_file("examples", DAY);
+        let (map, start, _) = input_to_map(input);
+        let max = map
+            .iter()
+            .fold(Position { x: 0, y: 0 }, |acc, pos| Position {
+                x: acc.x.max(pos.x),
+                y: acc.y.max(pos.y),
+            });
+        let result = locations_n_away(&map, &start, 2, &max);
+        assert_eq!(result.len(), 2);
+        let other_posn = Position { x: 9, y: 7 };
+        let result = locations_n_away(&map, &other_posn, 2, &max);
+        assert_eq!(result.len(), 4);
     }
 }
