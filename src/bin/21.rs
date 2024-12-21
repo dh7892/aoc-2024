@@ -1,8 +1,6 @@
 advent_of_code::solution!(21);
 use std::collections::{HashMap, VecDeque};
-use std::fs;
 use std::rc::Rc;
-use std::time::Instant;
 
 pub const DIRS: [(i32, i32); 4] = [(1, 0), (0, 1), (-1, 0), (0, -1)];
 
@@ -198,7 +196,6 @@ pub fn part_two(input: &str) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rstest::rstest;
 
     #[test]
     fn test_part_one() {
@@ -209,72 +206,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
-    }
-
-    // #[rstest]
-    // #[case("029A", 12)]
-    // #[case("179A", 14)]
-    // fn test_actions_for_digits(#[case] input: &str, #[case] length: usize) {
-    //     let digits = buttons_for_input(input);
-    //     let actions = actions_for_buttons(&digits);
-    //     assert_eq!(actions.len(), length);
-    // }
-
-    // #[rstest]
-    // #[case(Action::Activate, Action::Left, 4)]
-    // fn test_actions_for_actions(
-    //     #[case] current: Action,
-    //     #[case] target: Action,
-    //     #[case] expected_length: usize,
-    // ) {
-    //     let actions = actions_for_next_action(&current, &target);
-    //     assert_eq!(actions.len(), expected_length);
-    // }
-
-    // #[rstest]
-    // #[case("029A", 28)]
-    // #[case("179A", 28)]
-    // #[case("379A", 28)]
-    // fn test_actions_for_actions_for_digits(#[case] input: &str, #[case] length: usize) {
-    //     let digits = buttons_for_input(input);
-    //     let actions = actions_for_buttons(&digits);
-    //     let actions = actions_for_actions(&actions);
-    //     dbg!(&actions);
-    //     assert_eq!(actions.len(), length);
-    // }
-
-    // #[rstest]
-    // #[case("029A", 68)]
-    // #[case("980A", 60)]
-    // #[case("179A", 68)]
-    // #[case("456A", 64)]
-    // #[case("379A", 64)]
-    // fn test_sequence_for_number(#[case] input: &str, #[case] length: usize) {
-    //     let digits = buttons_for_input(input);
-    //     let actions = final_actions_for_digits(&digits);
-    //     assert_eq!(actions.len(), length);
-    // }
-
-    // #[rstest]
-    // #[case(Action::Up, Action::Right, 3)]
-    // fn test_action_to_next_action(
-    //     #[case] current: Action,
-    //     #[case] target: Action,
-    //     #[case] expected_length: usize,
-    // ) {
-    //     let actions = actions_for_next_action(&current, &target);
-    //     assert_eq!(actions.len(), expected_length);
-    // }
-    #[test]
-    fn test_ways_to_reach_button() {
-        let current = Button::One;
-        let target = Button::Five;
-        let result = ways_to_reach_button(&current, &target);
-        assert_eq!(result.len(), 2);
-        let current = Button::One;
-        let target = Button::Nine;
-        let result = ways_to_reach_button(&current, &target);
-        assert_eq!(result.len(), 6);
+        assert_eq!(result, Some(154115708116294));
     }
 }
