@@ -1,6 +1,6 @@
 advent_of_code::solution!(22);
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 fn step(before: usize) -> usize {
     let stage_1 = ((before * 64) ^ before) % 16777216;
@@ -41,22 +41,19 @@ fn sequences(start_num: usize) -> HashMap<(i8, i8, i8, i8), u8> {
     result
 }
 
-fn all_sequences(input: &str) -> Vec<HashMap<(i8, i8, i8, i8), u8>> {
+fn all_sequences(input: &str) -> HashMap<(i8, i8, i8, i8), usize> {
+    // Return a map of all sequences and the sum of the sale prices for each sequence
+    let mut result = HashMap::new();
     input
         .lines()
         .map(|line| line.parse::<usize>().expect("Invalid input"))
         .map(sequences)
-        .collect()
-}
-
-fn total_for_sequence(
-    sequences: Vec<HashMap<(i8, i8, i8, i8), u8>>,
-    keys: (i8, i8, i8, i8),
-) -> usize {
-    // Given a sequence, sum up the sale prices
-    sequences
-        .iter()
-        .fold(0, |acc, seq| acc + *seq.get(&keys).unwrap_or(&0) as usize)
+        .for_each(|seq| {
+            seq.iter().for_each(|(key, value)| {
+                *result.entry(*key).or_insert(0) += *value as usize;
+            })
+        });
+    result
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
@@ -76,19 +73,9 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let sequences = all_sequences(input);
     // Now get all possible keys for all sequences
-    let all_keys = sequences.iter().fold(HashSet::new(), |acc, seq| {
-        acc.union(&seq.keys().collect()).cloned().collect()
-    });
-    // Now find the key that gives the highest total
-    Some(
-        all_keys
-            .iter()
-            .map(|key| total_for_sequence(sequences.clone(), **key))
-            .max()
-            .unwrap(),
-    )
+    let big_map = all_sequences(input);
+    Some(*big_map.values().max().unwrap())
 }
 
 #[cfg(test)]
