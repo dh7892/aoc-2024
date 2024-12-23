@@ -1,7 +1,7 @@
 advent_of_code::solution!(23);
 
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug, Eq)]
