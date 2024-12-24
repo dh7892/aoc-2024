@@ -1,0 +1,335 @@
+// Half adder for first bits
+y00 XOR x00 -> z00
+y00 AND x00 -> wrd
+
+// 01 - carry in wrd
+y01 XOR x01 -> npf
+npf XOR wrd -> z01
+
+y01 AND x01 -> tvb
+wrd AND npf -> prh
+prh OR tvb -> nkn
+
+// 02 - carry in nkn
+y02 XOR x02 -> dgk
+dgk XOR nkn -> z02
+
+x02 AND y02 -> dqj
+dgk AND nkn -> qwd
+qwd OR dqj -> qjq
+
+// 03 - carry in qjq
+y03 XOR x03 -> psp
+psp XOR qjq -> z03
+
+x03 AND y03 -> wcf
+qjq AND psp -> fbs
+fbs OR wcf -> pkm
+
+// 04 - carry in pkm
+x04 XOR y04 -> rhk
+rhk XOR pkm -> z04
+
+x04 AND y04 -> pgh
+rhk AND pkm -> wfw
+wfw OR pgh -> pst
+
+// 05 - carry in pst
+y05 XOR x05 -> rdh
+pst XOR rdh -> z05
+
+y05 AND x05 -> mvm
+rdh AND pst -> wvd
+mvm OR wvd -> dwm
+
+// 06 - carry in dwm
+x06 XOR y06 -> rrs
+dwm XOR rrs -> z06
+
+x06 AND y06 -> gqt
+rrs AND dwm -> dth
+gqt OR dth -> fvn
+
+// 07 - carry in fvn
+y07 XOR x07 -> bks
+fvn XOR bks -> z07
+
+x07 AND y07 -> djw
+fvn AND bks -> fmj
+djw OR fmj -> cvp
+
+// 08 - carry in cvp
+y08 XOR x08 -> dqr
+dqr XOR cvp -> z08
+
+x08 AND y08 -> cvv
+cvp AND dqr -> tqn
+tqn OR cvv -> vsm
+
+// 09 - carry in vsm
+x09 XOR y09 -> bnj
+bnj XOR vsm -> z09
+
+x09 AND y09 -> qrc
+vsm AND bnj -> psh
+psh OR qrc -> dkr
+
+// 10 - carry in dkr
+x10 XOR y10 -> vrn
+vrn AND dkr -> z10 // ERROR - should be dkr XOR vrn -> z10 (it's and AND, not an XOR)
+
+y10 AND x10 -> kks
+vrn XOR dkr -> kmb // ERROR - should be vrn AND dkr -> kmb (it's an XOR, not and AND) SWAP with the one above
+kks OR kmb -> tgq
+
+// 11 - carry in tgq
+x11 XOR y11 -> sgt
+sgt XOR tgq -> z11
+
+x11 AND y11 -> cnk
+sgt AND tgq -> ctd
+ctd OR cnk -> ptc
+
+// 12 - carry in ptc
+y12 XOR x12 -> gcm
+ptc XOR gcm -> z12
+
+x12 AND y12 -> vrv
+ptc AND gcm -> cbh
+cbh OR vrv -> kqm
+
+// 13 - carry in kqm
+x13 XOR y13 -> fvr
+kqm XOR fvr -> z13
+
+x13 AND y13 -> rhm
+kqm AND fvr -> cts
+rhm OR cts -> cmd
+
+// 14 - carry in cmd
+y14 XOR x14 -> ttt
+ttt XOR cmd -> z14
+
+y14 AND x14 -> dcr
+cmd AND ttt -> sjm
+sjm OR dcr -> qts
+
+// 15 - carry in qts
+x15 XOR y15 -> kvg  ✅
+fsh OR jkh -> z15 // ERROR - should be qts XOR kbg -> z15
+
+y15 AND x15 -> fsh  ✅
+qts AND kvg -> jkh  ✅
+kvg XOR qts -> tvp // ERROR - should be kvg OR qts -> tvp Swap with above
+
+// 16 - carry in tvp
+y16 XOR x16 -> dwh
+tvp XOR dwh -> z16
+
+y16 AND x16 -> dnw
+dwh AND tvp -> hng
+hng OR dnw -> qqc
+
+// 17 - carry in qqc
+y17 XOR x17 -> rrp
+rrp XOR qqc -> z17
+
+y17 AND x17 -> fhk
+rrp AND qqc -> bhk
+bhk OR fhk -> njf
+
+// 18 - carry in njf
+x18 XOR y18 -> wkc
+njf XOR wkc -> z18
+
+x18 AND y18 -> rwt
+wkc AND njf -> gnm
+rwt OR gnm -> tnp
+
+// 19 - carry in tnp
+y19 XOR x19 -> ktg
+tnp XOR ktg -> z19
+
+x19 AND y19 -> qhh
+tnp AND ktg -> dss
+dss OR qhh -> ngd
+
+// 20 - carry in ngd
+y20 XOR x20 -> kpp
+kpp XOR ngd -> z20
+
+x20 AND y20 -> snt
+ngd AND kpp -> nrm
+nrm OR snt -> bqb
+
+// 21 - carry in bqb
+x21 XOR y21 -> vfb
+vfb XOR bqb -> z21
+
+y21 AND x21 -> fmg
+bqb AND vfb -> vgj
+fmg OR vgj -> cst
+
+// 22 - carry in cst
+y22 XOR x22 -> jfm
+cst XOR jfm -> z22
+
+y22 AND x22 -> fpw
+jfm AND cst -> mgb
+fpw OR mgb -> hcq
+
+// 23 - carry in hcq
+y23 XOR x23 -> qrh
+hcq XOR qrh -> z23
+
+x23 AND y23 -> trn
+qrh AND hcq -> vft
+trn OR vft -> gdn
+
+// 24 - carry in gdn
+y24 XOR x24 -> mrd
+mrd XOR gdn -> z24
+
+x24 AND y24 -> gbv
+gdn AND mrd -> qnc
+qnc OR gbv -> dgv
+
+// 25 - carry in dgv
+y25 XOR x25 -> bpw
+y25 AND x25 -> z25 // ERROR
+
+bpw XOR dgv -> dpg // ERROR Swap with above
+dgv AND bpw -> gcj
+dpg OR gcj -> hpr
+
+// 26 - carry in hpr
+x26 XOR y26 -> kch
+hpr XOR kch -> z26
+
+x26 AND y26 -> jrv
+kch AND hpr -> mvj
+mvj OR jrv -> cmg
+
+// 27 - carry in cmg
+x27 XOR y27 -> cgv
+cgv XOR cmg -> z27
+
+y27 AND x27 -> fpr
+cmg AND cgv -> hqk
+fpr OR hqk -> cqq
+
+// 28 - carry in cqq
+y28 XOR x28 -> hqr
+cqq XOR hqr -> z28
+
+x28 AND y28 -> kwc
+hqr AND cqq -> qwc
+kwc OR qwc -> ppn
+
+// 29 - carry in ppn
+x29 XOR y29 -> wpw
+wpw XOR ppn -> z29
+
+x29 AND y29 -> hsj
+wpw AND ppn -> bdh
+hsj OR bdh -> nkm
+
+// 30 - carry in nkm
+x30 XOR y30 -> kbc
+nkm XOR kbc -> z30
+
+x30 AND y30 -> cfn
+kbc AND nkm -> dvh
+dvh OR cfn -> rwb
+
+
+// 31 - carry in rwb
+y31 XOR x31 -> ntb
+rwb XOR ntb -> z31
+
+y31 AND x31 -> vkm
+rwb AND ntb -> dcg
+vkm OR dcg -> cbq
+
+// 32 - carry in cbq
+y32 XOR x32 -> fqm
+cbq XOR fqm -> z32
+
+cbq AND fqm -> qqp
+x32 AND y32 -> cch
+cch OR qqp -> vsd
+
+// 33 - carry in vsd
+y33 XOR x33 -> wrp
+wrp XOR vsd -> z33
+
+x33 AND y33 -> ksh
+vsd AND wrp -> jmq
+ksh OR jmq -> qjg
+
+// 34 - carry in qjg
+x34 XOR y34 -> sjd
+sjd XOR qjg -> z34
+
+x34 AND y34 -> gbs
+sjd AND qjg -> nvt
+gbs OR nvt -> tsw  
+
+// 35 - carry in tsw
+y35 XOR x35 -> vdk // ERROR
+mmf XOR tsw -> z35 
+
+x35 AND y35 -> mmf // ERROR
+mmf AND tsw -> qhw
+qhw OR vdk -> bsj
+
+
+
+
+
+
+bhc AND ksj -> dkm
+bhg AND hpj -> mqf
+bhg XOR hpj -> z44
+bsj XOR ccs -> z36
+ccs AND bsj -> mtm
+ckw XOR hcv -> z41
+dkm OR bhd -> hcv
+dqw OR rvr -> qmd
+hcv AND ckw -> cds
+hvs AND nfp -> rvr
+hvs XOR nfp -> z42
+jcq OR bnw -> jfn
+jht AND vgt -> jcq
+jht XOR vgt -> z37
+knh AND jfn -> brc
+knh XOR jfn -> z38
+ksj XOR bhc -> z40
+kvd OR twk -> ksj
+mbt OR brc -> qjf
+mqf OR gvw -> z45
+mtm OR hwr -> vgt
+njn OR vkf -> hpj
+qmd AND fnh -> vkf
+qmd XOR fnh -> z43
+rjg OR cds -> nfp
+wsm AND qjf -> twk
+wsm XOR qjf -> z39
+x39 AND y39 -> kvd
+x40 AND y40 -> bhd
+x41 XOR y41 -> ckw
+x43 XOR y43 -> fnh
+x44 AND y44 -> gvw
+x44 XOR y44 -> bhg
+y36 AND x36 -> hwr
+y36 XOR x36 -> ccs
+y37 AND x37 -> bnw
+y37 XOR x37 -> jht
+y38 AND x38 -> mbt
+y38 XOR x38 -> knh
+y39 XOR x39 -> wsm
+y40 XOR x40 -> bhc
+y41 AND x41 -> rjg
+y42 AND x42 -> dqw
+y42 XOR x42 -> hvs
+y43 AND x43 -> njn
