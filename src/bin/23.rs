@@ -201,9 +201,9 @@ impl PartialEq for Lan {
     }
 }
 
-fn generate_power_set(pcs: &HashSet<String>) -> Vec<HashSet<String>> {
+fn generate_power_set(pcs: &HashSet<String>, min: usize) -> Vec<HashSet<String>> {
     let mut power_set: Vec<HashSet<String>> = Vec::new();
-    for i in 0..=pcs.len() {
+    for i in min..=pcs.len() {
         for subset in pcs.iter().combinations(i) {
             let mut set = HashSet::new();
             for pc in subset {
@@ -219,7 +219,10 @@ fn find_largest_lan(pcs: &HashSet<PC>) -> Lan {
     // Given some PCs, find the largest LAN that PC is connected to
     // A LAN is a set of PCs where each PC is in the LAN is connected directly to
     // every other PC in the LAN
-    let mut lans: HashSet<Lan> = HashSet::new();
+    let mut largest_lan = Lan {
+        pcs: HashSet::new(),
+    };
+    let mut largest_lan_size = 0;
     for pc in pcs {
         // Make a trial LAN out of every combination of PCs we are connected to
         let mut set = pc.connections.clone();
@@ -227,7 +230,7 @@ fn find_largest_lan(pcs: &HashSet<PC>) -> Lan {
 
         // The Power set is all combinations of PC names from the original connections
 
-        let power_set = generate_power_set(&set);
+        let power_set = generate_power_set(&set, largest_lan_size);
         // Sort the power set by size with biggest first
         let mut sorted_power_set = power_set.clone();
         sorted_power_set.sort_by_key(|set| set.len());
@@ -248,16 +251,15 @@ fn find_largest_lan(pcs: &HashSet<PC>) -> Lan {
             }
             if lan.all_connected() {
                 // The first one we find will be the largest
-                lans.insert(lan);
+                if lan.size() > largest_lan_size {
+                    largest_lan_size = lan.size();
+                    largest_lan = lan.clone();
+                }
                 break;
             }
         }
     }
-    // Now return the LAN with the most PCs
-    lans.iter()
-        .max_by_key(|lan| lan.size())
-        .expect("No LANs found")
-        .clone()
+    largest_lan
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
